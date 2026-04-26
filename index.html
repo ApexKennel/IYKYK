@@ -1,0 +1,507 @@
+<!doctype html>
+<html>
+<head><link rel="stylesheet" href="/index.css">
+</head>
+<body>
+  <div id="app" class="flex h-screen w-full bg-[#f8fafc] overflow-hidden shadow-2xl relative">
+    
+    <!-- Left Static Navigation -->
+    <nav class="w-16 md:w-20 bg-black flex flex-col items-center py-8 gap-8 border-r border-[#222] z-50 flex-shrink-0">
+      <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-sm tracking-tighter shadow-[0_0_20px_rgba(37,99,235,0.4)] mb-4 cursor-pointer hover:scale-110 transition-transform">
+        Nx
+      </div>
+      <div class="flex flex-col gap-6 w-full items-center">
+        <button id="nav-btn-home" class="nav-btn p-3 active" title="Nexus Home">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        </button>
+        <button id="nav-btn-contacts" class="nav-btn p-3" title="Synapse Directory">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+        </button>
+        <button id="nav-btn-chat" class="nav-btn p-3" title="Active Link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </button>
+        <button id="nav-btn-advancement" class="nav-btn p-3" title="Advancement Metrics">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        </button>
+      </div>
+    </nav>
+    
+    <div class="flex-1 relative overflow-hidden bg-[#f0f2f5]">
+      
+      <!-- VIEW: CHAT -->
+      <div id="view-chat" class="view-panel hidden absolute inset-0 flex">
+        <!-- Main Chat Area -->
+        <div class="flex-1 flex flex-col glass-panel border-r relative shadow-inner">
+      <!-- Header -->
+      <header class="flex items-center justify-between px-8 py-5 border-b bg-white/60 backdrop-blur-xl sticky top-0 z-50">
+        <div class="flex items-center gap-5">
+          <div class="w-12 h-12 rounded-2xl bg-black flex items-center justify-center text-white font-black text-xl tracking-tighter shadow-2xl relative group cursor-pointer overflow-hidden active:scale-95 transition-transform">
+            <div class="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+            IK
+          </div>
+          <div>
+            <h1 class="font-bold text-gray-900 leading-tight flex items-center gap-3">
+              <span class="tracking-tight text-lg">IYKYK Engine</span>
+              <span id="locked-badge" class="hidden px-2 py-0.5 bg-amber-500 text-white text-[9px] uppercase font-black rounded-md flex items-center gap-1 shadow-lg shadow-amber-200 animate-bounce">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                In Bound
+              </span>
+            </h1>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
+              <span class="text-xs text-gray-400 font-bold uppercase tracking-widest text-[9px]">Neural Sync Active</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-5">
+          <div class="flex bg-gray-100/50 p-1 rounded-xl border border-gray-200/50 backdrop-blur-sm">
+            <button id="mode-free" class="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all bg-white shadow-lg text-gray-900 border border-gray-100">Free</button>
+            <button id="mode-iykyk" class="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all text-gray-400 hover:text-gray-600">IYKYK</button>
+          </div>
+          <div class="h-8 w-[1px] bg-gray-200/50"></div>
+          <button id="auth-btn" class="px-5 py-2 btn-premium text-[10px] font-black uppercase tracking-widest rounded-full transition-all">
+            Join Nexus
+          </button>
+          <button id="voice-call-btn" class="hidden text-gray-400 hover:text-blue-600 transition-all hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-blue-50">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+          </button>
+          <button id="video-call-btn" class="hidden text-gray-400 hover:text-blue-600 transition-all hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-blue-50">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+          </button>
+          <button id="show-assistant" class="text-gray-400 hover:text-black transition-all hover:scale-110 active:scale-90">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-13.6 8.5 8.5 0 0 1 4.6 1.4L21 3.5v8z"></path></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Messages Area -->
+      <main id="chat-messages" class="flex-1 overflow-y-auto p-8 space-y-6 scroll-smooth bg-transparent">
+        <div class="flex flex-col items-center justify-center py-20 opacity-10">
+          <div class="w-24 h-24 bg-gray-200 rounded-full blur-3xl absolute"></div>
+          <p class="text-[10px] font-black tracking-[0.4em] uppercase text-gray-500 mb-8">Nexus Established</p>
+        </div>
+      </main>
+
+      <!-- Locked Topic Banner -->
+      <div id="unlock-ui" class="hidden px-8 py-5 bg-white/80 backdrop-blur-xl border-t border-amber-100/50 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.02)]">
+        <div class="space-y-1">
+          <p class="text-[10px] text-amber-500 font-black uppercase tracking-widest flex items-center gap-2">
+            <span class="w-2 h-2 bg-amber-500 rounded-full animate-ping"></span>
+            Resolution Required
+          </p>
+          <div class="flex items-center gap-2">
+            <span id="current-flag-text" class="px-2 py-1 bg-amber-50 rounded border border-amber-200 text-xs font-bold text-amber-900">Loading...</span>
+            <span id="current-flag-desc" class="text-[10px] text-gray-400 font-bold uppercase tracking-tight italic"></span>
+          </div>
+        </div>
+        <button id="resolve-btn" class="px-6 py-2.5 bg-black hover:bg-gray-800 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-2xl shadow-black/20 transition-all active:scale-95 border-b-2 border-gray-700">
+          Mark Solved
+        </button>
+      </div>
+
+      <!-- Input Area -->
+      <div class="p-6 bg-white/60 backdrop-blur-xl border-t border-gray-100/50 space-y-4">
+        <div class="flex items-center justify-between text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 px-2">
+          <div class="flex items-center gap-6">
+            <span id="word-count-display">0 Words</span>
+            <span id="extension-status" class="hidden text-blue-600 animate-pulse">Extension Prime</span>
+          </div>
+          <div id="typing-status" class="hidden text-black/40 italic normal-case flex items-center gap-2">
+            <div class="flex gap-1">
+              <span class="w-1 h-1 bg-black/40 rounded-full animate-bounce"></span>
+              <span class="w-1 h-1 bg-black/40 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+            </div>
+            Interpreting logic...
+          </div>
+        </div>
+        
+        <form id="chat-form" class="flex gap-4 items-end px-1">
+          <div class="flex-1 bg-white rounded-[2rem] p-1.5 border border-gray-200/60 shadow-2xl shadow-black/5 focus-within:border-black transition-all relative">
+             <!-- Flag Selector -->
+            <div id="flag-picker" class="p-4 border-b border-gray-100 mb-2 hidden animate-in fade-in slide-in-from-bottom-5">
+              <div class="flex gap-2 mb-4">
+                <button type="button" data-flag="question" class="flag-option px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-gray-50 border border-gray-200 hover:border-black transition-all">Question</button>
+                <button type="button" data-flag="event" class="flag-option px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-gray-50 border border-gray-200 hover:border-black transition-all">Event</button>
+                <button type="button" data-flag="significant" class="flag-option px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-gray-50 border border-gray-200 hover:border-black transition-all">Significant</button>
+              </div>
+              <input 
+                id="flag-description" 
+                type="text" 
+                placeholder="Topic keyword or context (optional)..." 
+                class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2 text-xs outline-none focus:border-black transition-colors"
+                autocomplete="off"
+              >
+            </div>
+            
+            <textarea 
+              id="chat-input" 
+              placeholder="Inject thought..." 
+              class="w-full bg-transparent border-none focus:ring-0 py-4 px-6 text-sm outline-none resize-none min-h-[56px] max-h-[200px] font-medium placeholder:text-gray-300"
+              rows="1"
+            ></textarea>
+            
+            <div class="flex items-center justify-between px-4 pb-4">
+              <div class="flex gap-3">
+                <button type="button" id="toggle-flag" class="p-2.5 text-gray-400 hover:text-black transition-all rounded-full hover:bg-gray-100 active:scale-90">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+                </button>
+                <button type="button" id="use-extension" class="hidden text-[10px] font-black px-4 py-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-all uppercase tracking-widest border border-transparent hover:border-black">
+                  Extension
+                </button>
+              </div>
+              <button 
+                type="submit" 
+                id="send-button"
+                class="w-12 h-12 rounded-full bg-black flex items-center justify-center text-white disabled:opacity-5 disabled:grayscale transition-all active:scale-95 shadow-xl shadow-black/20 btn-premium"
+                disabled
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Assistant Sidebar -->
+    <aside id="assistant-panel" class="w-96 glass-panel border-l flex flex-col hidden lg:flex transition-all duration-500 ease-in-out">
+      <header class="p-8 border-b flex items-center justify-between">
+        <h2 class="font-black text-[10px] uppercase tracking-[0.3em] text-black">Cognitive Hub</h2>
+        <div class="flex gap-2">
+          <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping"></span>
+        </div>
+      </header>
+      
+      <div class="flex-1 overflow-y-auto p-8 space-y-10 custom-scroll">
+        <!-- Sentiment Logic -->
+        <section class="assistant-card">
+          <h3 class="text-[9px] font-black uppercase text-gray-400 mb-6 tracking-[0.3em] flex items-center gap-2">
+            <div class="w-1 h-1 bg-blue-500 rounded-full"></div>
+            Neural Sentiment
+          </h3>
+          <div id="mood-tracker" class="space-y-4">
+             <div class="flex justify-between items-end">
+               <span class="text-[9px] font-black uppercase text-gray-400">Atmosphere</span>
+               <span id="mood-val" class="text-xs font-black tracking-tight text-blue-600">Neutral</span>
+             </div>
+             <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+               <div id="mood-bar" class="h-full bg-blue-600 transition-all duration-700 w-1/2 rounded-full"></div>
+             </div>
+             <p class="text-[9px] text-gray-400 font-medium leading-relaxed italic">Analysis is currently based on the last 5 tokens of exchange.</p>
+          </div>
+        </section>
+
+        <!-- Counseling Topics -->
+        <section class="assistant-card">
+          <h3 class="text-[9px] font-black uppercase text-gray-400 mb-6 tracking-[0.3em] flex items-center gap-2">
+            <div class="w-1 h-1 bg-purple-500 rounded-full"></div>
+            Counseling Agenda
+          </h3>
+          <div id="counseling-agenda" class="space-y-3">
+             <!-- Dynamic content -->
+          </div>
+        </section>
+
+        <!-- AI Tools -->
+        <section class="space-y-6">
+          <h3 class="text-[9px] font-black uppercase text-gray-400 tracking-[0.3em] px-2">System Identity</h3>
+          <div class="assistant-card bg-black text-white border-none relative overflow-hidden group cursor-pointer" id="copy-my-id">
+            <div class="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-10 transition-opacity"></div>
+            <h4 class="text-[8px] font-black mb-1 uppercase tracking-[0.2em] opacity-50">Local Identity</h4>
+            <div class="flex items-center justify-between">
+              <span id="my-synapse-id" class="text-xs font-black tracking-tighter truncate">SYNCING...</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="opacity-50 group-hover:opacity-100 transition-opacity"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </div>
+          </div>
+          
+          <h3 class="text-[9px] font-black uppercase text-gray-400 tracking-[0.3em] px-2 mt-8">Active Modules</h3>
+          
+          <div class="assistant-card group cursor-pointer relative overflow-hidden">
+            <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <h4 class="text-xs font-black mb-2 uppercase tracking-wide">Deep Interpreter</h4>
+            <p class="text-[10px] text-gray-500 leading-relaxed font-bold">Uncover latent meanings and summarize complex logic trails with a single tap.</p>
+          </div>
+
+          <div class="assistant-card group cursor-pointer relative overflow-hidden">
+             <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-purple-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <h4 class="text-xs font-black mb-2 uppercase tracking-wide">Elegant Flow</h4>
+            <p class="text-[10px] text-gray-500 leading-relaxed font-bold">Heuristic grammar correction and vocabulary expansion for professional clarity.</p>
+          </div>
+        </section>
+      </div>
+
+      <!-- Footer Branding -->
+      <footer class="p-8 border-t bg-gray-50/50">
+        <div class="flex items-center justify-between mb-6">
+          <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">User Resilience</span>
+          <span class="text-[10px] font-black text-blue-600 px-2 py-0.5 bg-blue-50 rounded">Prime</span>
+        </div>
+        <button class="w-full py-4 btn-premium text-[10px] font-black rounded-2xl uppercase tracking-[0.2em] shadow-xl">
+           Weekly Q&A
+        </button>
+      </footer>
+    </aside>
+      </div><!-- End view-chat -->
+      
+      <!-- VIEW: HOME -->
+      <div id="view-home" class="view-panel absolute inset-0 bg-white/60 backdrop-blur-3xl overflow-y-auto p-10 flex flex-col">
+        <div class="max-w-4xl w-full mx-auto space-y-10">
+          <header class="flex justify-between items-end border-b border-black/10 pb-6">
+            <div>
+              <h1 class="text-4xl font-black text-black tracking-tighter">Nexus Dashboard</h1>
+              <p class="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mt-2">Real-time Cognitive Synchronization</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="w-3 h-3 bg-blue-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.6)]"></span>
+              <span class="text-xs font-black tracking-widest text-blue-600 uppercase">System Optimal</span>
+            </div>
+          </header>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="col-span-full md:col-span-2 bento-card relative overflow-hidden group hover:scale-[1.01] transition-transform cursor-pointer" onclick="document.getElementById('nav-btn-chat').click()">
+              <div class="absolute right-0 top-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+              <h3 class="text-xs font-black uppercase text-gray-400 tracking-[0.3em] mb-4">Quick Action</h3>
+              <h2 class="text-2xl font-black tracking-tight text-black mb-2">Initiate Secure Link</h2>
+              <p class="text-sm text-gray-500 font-medium max-w-md">Launch into the active chat environment. Ensure your cognitive sync parameters are set.</p>
+              <div class="mt-6 flex items-center text-blue-600 font-bold uppercase tracking-widest text-xs gap-2">
+                Launch <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </div>
+            </div>
+            
+            <div class="bento-card bg-gradient-to-br from-black to-gray-900 border-0 flex flex-col relative overflow-hidden text-white cursor-pointer hover:scale-[1.02] transition-transform" onclick="document.getElementById('nav-btn-contacts').click()">
+              <div class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-blue-900/40 to-transparent"></div>
+              <h3 class="text-[10px] font-black uppercase text-gray-400 tracking-[0.3em] mb-4 z-10">Quick Dial Favorites</h3>
+              <div class="flex-1 flex flex-col justify-end z-10 w-full">
+                <div id="home-favorites-list" class="flex flex-col gap-2 w-full mt-auto pb-2">
+                   <!-- Populated by JS -->
+                   <div class="text-xs text-gray-500 italic">No favorites starred.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+            <!-- Emotional Core Status -->
+            <div class="bento-card col-span-1 border-0 bg-gradient-to-br from-indigo-50 to-blue-50 relative overflow-hidden flex flex-col justify-between">
+              <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 flex-shrink-0"></div>
+              <div>
+                <h3 class="text-[10px] font-black uppercase text-indigo-400 tracking-[0.3em] mb-1">Current Modality</h3>
+                <h2 class="text-3xl font-black text-indigo-900 tracking-tight">VIBRANT</h2>
+              </div>
+              <div class="mt-8">
+                 <div class="flex justify-between items-end mb-2">
+                   <span class="text-sm font-bold text-indigo-800">Communication Flow</span>
+                   <span class="text-xs font-black text-indigo-500">84%</span>
+                 </div>
+                 <div class="h-2 w-full bg-indigo-200/50 rounded-full overflow-hidden">
+                   <div class="h-full bg-indigo-500 w-[84%] rounded-full shadow-[0_0_10px_rgba(99,102,241,0.8)]"></div>
+                 </div>
+              </div>
+            </div>
+
+            <!-- Recent AI Insights -->
+            <div class="bento-card col-span-1 md:col-span-2 flex flex-col">
+              <h3 class="text-xs font-black uppercase text-gray-400 tracking-[0.3em] mb-4">Recent Cognitive Feedback</h3>
+              <div class="flex-1 space-y-4">
+                <div class="flex items-start gap-4 p-4 rounded-2xl bg-orange-50/50 border border-orange-100">
+                  <div class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0 mt-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                  </div>
+                  <div>
+                    <h4 class="text-sm font-bold text-orange-900 mb-1">De-escalation Recommended</h4>
+                    <p class="text-xs font-medium text-orange-800/70">"Your last message conveyed an 'AGGRESSIVE' tone. Consider using I-feel statements to maintain a neutral core."</p>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-4 p-4 rounded-2xl bg-blue-50/50 border border-blue-100">
+                  <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>
+                  </div>
+                  <div>
+                    <h4 class="text-sm font-bold text-blue-900 mb-1">Sustained Positivity</h4>
+                    <p class="text-xs font-medium text-blue-800/70">"You maintained a calm and vibrant tone in 5 consecutive interactions. Relationship synergy improved."</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Quick Actions Banner -->
+            <div class="col-span-full rounded-3xl bg-black p-8 text-white flex flex-col md:flex-row justify-between items-center relative overflow-hidden group cursor-pointer hover:bg-gray-900 transition-colors" onclick="document.getElementById('nav-btn-advancement').click()">
+              <div class="absolute -right-32 -top-32 w-96 h-96 bg-blue-600/20 blur-[100px] rounded-full pointer-events-none group-hover:bg-blue-500/30 transition-colors"></div>
+              
+              <div class="z-10 text-center md:text-left mb-6 md:mb-0">
+                <h3 class="text-2xl font-black tracking-tight mb-2">Unlock Deep Empathy</h3>
+                <p class="text-sm text-gray-400 font-medium">Access premium emotional modules and deeper AI insights.</p>
+              </div>
+              <div class="z-10 w-full md:w-auto">
+                 <button class="w-full md:w-auto px-8 py-4 bg-white text-black text-xs font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-transform shadow-[0_10px_40px_rgba(255,255,255,0.15)] flex justify-center items-center gap-2">
+                   Upgrade Nexus <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                 </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div><!-- End view-home -->
+
+      <!-- VIEW: CONTACTS -->
+      <div id="view-contacts" class="view-panel hidden absolute inset-0 bg-white/60 backdrop-blur-3xl overflow-y-auto p-10">
+        <div class="max-w-4xl w-full mx-auto space-y-10">
+          <header class="flex justify-between items-end border-b border-black/10 pb-6">
+            <div>
+              <h1 class="text-4xl font-black text-black tracking-tighter">Synapse Directory</h1>
+              <p class="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mt-2">Manage Peer Connections</p>
+            </div>
+          </header>
+
+          <div class="flex gap-4">
+            <input type="text" id="contact-search" placeholder="Search by Contact Name or Mobile..." class="flex-1 px-6 py-4 rounded-2xl border border-gray-200/60 bg-white/80 shadow-sm focus:border-blue-500 outline-none text-sm font-medium">
+            <button id="add-contact-btn" class="px-8 py-4 rounded-2xl bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-gray-800 transition-all shadow-xl hover:-translate-y-1">
+              Add Link
+            </button>
+          </div>
+
+          <div id="favorites-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 hidden">
+            <h2 class="col-span-full text-[10px] font-black uppercase tracking-widest text-blue-500 mb-2 border-b border-blue-100 pb-2">Favorite Links</h2>
+            <!-- populated via JS -->
+          </div>
+
+          <div id="contacts-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h2 class="col-span-full text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 border-b border-gray-100 pb-2">All Links</h2>
+            <div class="flex items-center justify-center p-12 text-xs font-bold text-gray-400 uppercase tracking-widest italic col-span-full border-2 border-dashed border-gray-200 rounded-2xl">
+              No active links. Sync with Nexus to discover peers.
+            </div>
+          </div>
+        </div>
+      </div><!-- End view-contacts -->
+
+      <!-- VIEW: ADVANCEMENT -->
+      <div id="view-advancement" class="view-panel hidden absolute inset-0 bg-[#0a0a0b] text-white overflow-y-auto p-10">
+        <div class="max-w-5xl w-full mx-auto space-y-12">
+          <header class="flex justify-between items-end border-b border-white/10 pb-6">
+            <div>
+              <h1 class="text-4xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Advancement Metrics</h1>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-[0.2em] mt-2">Unfiltered Neutral User-Goal Optimization</p>
+            </div>
+          </header>
+
+          <div class="bento-grid p-0">
+            <div class="bento-card dark-bento col-span-full md:col-span-2 relative overflow-hidden">
+               <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-blue-900/20 to-transparent"></div>
+               <h3 class="text-xs font-black uppercase text-gray-500 tracking-[0.3em] mb-4">Neural Analysis</h3>
+               <div class="flex items-start gap-8">
+                 <div class="text-6xl font-black tracking-tighter text-white">A+</div>
+                 <div class="space-y-2 flex-1">
+                    <p class="text-sm text-gray-300 leading-relaxed font-medium">Based on recent real-time response flows, your baseline emotional volatility has decreased by 14%. Your communication is trending towards the optimal analytic/vibrant intersection.</p>
+                    <p class="text-xs font-bold text-blue-400 mt-2 uppercase tracking-widest">State of the Art Trajectory</p>
+                 </div>
+               </div>
+            </div>
+
+            <div class="bento-card dark-bento flex flex-col justify-between group">
+              <h3 class="text-xs font-black uppercase text-gray-500 tracking-[0.3em] mb-4">Latency Factor</h3>
+              <div>
+                <div class="text-5xl font-black tracking-tighter text-green-400 mb-2 group-hover:scale-105 transition-transform origin-left">24ms</div>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Average Response Delay</p>
+              </div>
+            </div>
+
+            <div class="bento-card dark-bento flex flex-col justify-between group">
+              <h3 class="text-xs font-black uppercase text-gray-500 tracking-[0.3em] mb-4">Logic Escalation</h3>
+              <div>
+                <div class="text-5xl font-black tracking-tighter text-amber-400 mb-2 group-hover:scale-105 transition-transform origin-left">1.2%</div>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Escalation Events / Hr</p>
+              </div>
+            </div>
+            
+            <div class="bento-card dark-bento col-span-full">
+               <h3 class="text-xs font-black uppercase text-gray-500 tracking-[0.3em] mb-6">AI Unfiltered Feedback</h3>
+               <div class="grid md:grid-cols-3 gap-6">
+                 <div class="p-6 rounded-xl bg-white/5 border border-white/5">
+                    <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 mb-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    </div>
+                    <h4 class="font-bold text-white mb-2">Clarity</h4>
+                    <p class="text-xs text-gray-400 leading-relaxed font-medium">Your sentence structures are 12% more concise than last week. Maintain direct intent without hedging.</p>
+                 </div>
+                 <div class="p-6 rounded-xl bg-white/5 border border-white/5">
+                    <div class="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 mb-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    </div>
+                    <h4 class="font-bold text-white mb-2">Caution: Tone</h4>
+                    <p class="text-xs text-gray-400 leading-relaxed font-medium">After 8PM, sentiment analysis detects minor spikes in 'AGGRESSIVE' indicators. Deep interpreter limits activated.</p>
+                 </div>
+                 <div class="p-6 rounded-xl bg-white/5 border border-white/5">
+                    <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 mb-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    </div>
+                    <h4 class="font-bold text-white mb-2">Synergy Goal</h4>
+                    <p class="text-xs text-gray-400 leading-relaxed font-medium">Next phase goal: Increase 'VIBRANT' emotional tone by utilizing positive reinforcement statements.</p>
+                 </div>
+               </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- End view-advancement -->
+
+    </div><!-- End flex-1 relative (views container) -->
+    
+    <!-- Audio/Video Elements for PeerJS -->
+    <audio id="remote-audio" autoplay class="hidden"></audio>
+    <div id="call-overlay" class="hidden fixed inset-0 z-[100] bg-black/90 backdrop-blur-3xl flex flex-col items-center justify-center animate-in fade-in zoom-in duration-500">
+      <video id="remote-video" autoplay playsinline class="w-full h-full object-cover absolute inset-0 z-0 hidden"></video>
+      <video id="local-video" autoplay playsinline muted class="w-32 h-48 object-cover absolute bottom-8 right-8 z-10 border-2 border-white/20 rounded-xl hidden shadow-2xl"></video>
+      <div id="call-ui-container" class="z-20 flex flex-col items-center">
+        <div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 animate-pulse-glow flex items-center justify-center mb-8 relative">
+          <div class="absolute inset-0 bg-blue-400/20 rounded-full animate-ping"></div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+        </div>
+        <h3 id="call-status" class="text-white font-black uppercase tracking-[0.4em] text-sm mb-2">Establishing Link</h3>
+        <p id="call-peer-id" class="text-blue-400 text-[10px] font-bold tracking-widest uppercase mb-12">P-ID: SYNCING</p>
+        <button id="end-call-btn" class="w-16 h-16 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-2xl transition-all hover:scale-110 active:scale-95">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Add Contact Modal -->
+    <div id="add-contact-modal" class="hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl relative animate-in zoom-in-95 duration-200">
+        <button id="close-contact-modal" class="absolute top-4 right-4 text-gray-400 hover:text-black">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <h2 class="text-2xl font-black mb-6">Add New Link</h2>
+        <form id="add-contact-form" class="space-y-4">
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Full Name</label>
+            <input type="text" id="contact-name" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 font-medium">
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Mobile Number</label>
+            <input type="tel" id="contact-mobile" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 font-medium">
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Synapse ID (Optional for Active Link)</label>
+            <input type="text" id="contact-synapse" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 font-medium text-xs">
+          </div>
+          <div class="flex items-center gap-3 pt-2 group cursor-pointer" onclick="document.getElementById('contact-favorite').click()">
+             <input type="checkbox" id="contact-favorite" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer pointer-events-auto">
+             <label for="contact-favorite" class="text-sm font-bold text-gray-700 group-hover:text-black cursor-pointer pointer-events-auto">Mark as Favorite Link</label>
+          </div>
+          <button type="submit" class="w-full py-4 mt-6 bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-blue-700 transition-colors shadow-lg">Save Contact</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "marked": "https://esm.sh/marked@^15.0.7"
+      }
+    }
+  </script>
+  <script type="module" src="/index.ts"></script>
+</body>
+</html>

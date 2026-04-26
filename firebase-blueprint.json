@@ -1,0 +1,40 @@
+{
+  "entities": {
+    "Message": {
+      "title": "Message",
+      "description": "A chat message in the IYKYK engine.",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string", "description": "The content of the message." },
+        "senderId": { "type": "string", "description": "UID of the sender." },
+        "senderName": { "type": "string", "description": "Display name of the sender." },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Server timestamp." },
+        "flag": { "type": "string", "description": "Flag type (question, event, etc)." },
+        "flagDesc": { "type": "string", "description": "Flag description." },
+        "isAI": { "type": "boolean", "description": "Whether the message is from the AI." }
+      },
+      "required": ["text", "senderId", "timestamp"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User profile and status.",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "lastSeen": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "messages": {
+      "schema": "Message",
+      "description": "Global chat messages."
+    },
+    "users": {
+      "schema": "User",
+      "description": "User registry."
+    }
+  }
+}
