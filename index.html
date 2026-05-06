@@ -14,6 +14,12 @@
         <button id="nav-btn-home" class="nav-btn p-3 active" title="Nexus Home">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
         </button>
+        <button id="nav-btn-calendar" class="nav-btn p-3" title="Progression Calendar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        </button>
+        <button id="nav-btn-survey" class="nav-btn p-3" title="Nexus Survey">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </button>        
         <button id="nav-btn-contacts" class="nav-btn p-3" title="Synapse Directory">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
         </button>
@@ -389,13 +395,12 @@
           <div class="bento-grid p-0">
             <div class="bento-card dark-bento col-span-full md:col-span-2 relative overflow-hidden">
                <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-blue-900/20 to-transparent"></div>
-               <h3 class="text-xs font-black uppercase text-gray-500 tracking-[0.3em] mb-4">Neural Analysis</h3>
-               <div class="flex items-start gap-8">
-                 <div class="text-6xl font-black tracking-tighter text-white">A+</div>
-                 <div class="space-y-2 flex-1">
-                    <p class="text-sm text-gray-300 leading-relaxed font-medium">Based on recent real-time response flows, your baseline emotional volatility has decreased by 14%. Your communication is trending towards the optimal analytic/vibrant intersection.</p>
-                    <p class="text-xs font-bold text-blue-400 mt-2 uppercase tracking-widest">State of the Art Trajectory</p>
-                 </div>
+               <h3 class="text-xs font-black uppercase text-gray-500 tracking-[0.3em] mb-4">Sentiment Evolution</h3>
+               <div class="w-full h-48 mt-4 relative z-10 hidden md:block">
+                  <canvas id="sentiment-chart"></canvas>
+               </div>
+               <div class="md:hidden flex flex-col justify-center items-center h-48 opacity-50">
+                  <span class="text-[10px] uppercase font-black tracking-widest">Chart optimally viewed on desktop</span>
                </div>
             </div>
 
@@ -445,7 +450,96 @@
         </div>
       </div><!-- End view-advancement -->
 
+      <!-- VIEW: CALENDAR -->
+      <div id="view-calendar" class="view-panel hidden absolute inset-0 bg-white/60 backdrop-blur-3xl overflow-y-auto p-10">
+        <div class="max-w-5xl w-full mx-auto space-y-10">
+          <header class="flex justify-between items-end border-b border-black/10 pb-6">
+            <div>
+              <h1 class="text-4xl font-black text-black tracking-tighter">Progression Calendar</h1>
+              <p class="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mt-2">Macro-Objective Synchronization</p>
+            </div>
+          </header>
+          <!-- Goals Placeholder -->
+          <div class="grid md:grid-cols-3 gap-6">
+            <!-- 90 Day -->
+            <div class="bento-card border border-blue-100 bg-gradient-to-b from-white to-blue-50/30">
+               <h3 class="text-xs font-black uppercase text-blue-600 tracking-[0.3em] mb-4">90-Day Sprint</h3>
+               <div class="space-y-4">
+                  <div class="p-4 rounded-xl bg-white shadow-sm border border-gray-100 flex items-start gap-4 cursor-pointer hover:border-black transition-colors">
+                     <input type="checkbox" class="mt-1 w-4 h-4 text-blue-600 rounded">
+                     <div>
+                       <h4 class="font-bold text-sm text-gray-900">Establish Baseline Emotional Regulation</h4>
+                       <p class="text-[10px] uppercase font-black text-gray-400 mt-1">Due: June 15</p>
+                     </div>
+                  </div>
+               </div>
+               <button class="w-full mt-4 py-3 border-2 border-dashed border-blue-200 text-blue-600 font-bold uppercase tracking-widest text-[10px] rounded-xl hover:bg-blue-50 transition-colors">Add Milestone</button>
+            </div>
+            <!-- 1 Year -->
+            <div class="bento-card border border-indigo-100 bg-gradient-to-b from-white to-indigo-50/30">
+               <h3 class="text-xs font-black uppercase text-indigo-600 tracking-[0.3em] mb-4">1-Year Horizon</h3>
+               <div class="p-6 text-center text-gray-400 text-xs font-bold uppercase tracking-widest italic border border-dashed border-indigo-200 rounded-xl">
+                 No active objectives. Initiate survey to define.
+               </div>
+            </div>
+            <!-- 5 Year -->
+            <div class="bento-card border border-purple-100 bg-gradient-to-b from-white to-purple-50/30">
+               <h3 class="text-xs font-black uppercase text-purple-600 tracking-[0.3em] mb-4">5-Year Vision</h3>
+               <div class="p-6 text-center text-gray-400 text-xs font-bold uppercase tracking-widest italic border border-dashed border-purple-200 rounded-xl">
+                 No active vision. Initiate survey to define.
+               </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- End view-calendar -->
+
+      <!-- VIEW: SURVEY -->
+      <div id="view-survey" class="view-panel hidden absolute inset-0 bg-[#0a0f18] text-white overflow-y-auto p-10 flex flex-col items-center justify-center">
+        <div class="max-w-2xl w-full mx-auto text-center space-y-8 relative z-10">
+           <div class="absolute inset-0 bg-blue-500/20 blur-[120px] rounded-full pointer-events-none -z-10"></div>
+           
+           <h1 class="text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500">Nexus Personalization</h1>
+           <p class="text-sm font-medium text-blue-200/70 max-w-lg mx-auto">Update your deep identity vectors. Our system will adjust its heuristics to advocate for your long-term success and emotional well-being.</p>
+           
+           <div class="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl mt-12 text-left">
+              <h3 class="font-black text-xs uppercase tracking-[0.3em] text-blue-400 mb-6">Session 1: Logistics & Habits</h3>
+              <form class="space-y-6" id="survey-form">
+                <div>
+                  <label class="block text-xs font-bold text-gray-400 mb-2">What is your current highest priority macro-goal?</label>
+                  <input type="text" id="survey-goal" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-blue-500 text-sm font-medium transition-colors" placeholder="e.g. Scaling my business securely..." required>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-400 mb-2">Current known stressor or friction point?</label>
+                  <textarea id="survey-stressor" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-blue-500 text-sm font-medium transition-colors min-h-[100px]" placeholder="e.g. Managing fragmented communication across..." required></textarea>
+                </div>
+                <button type="submit" class="w-full py-4 bg-blue-600 text-white font-black uppercase tracking-widest text-xs rounded-xl hover:bg-blue-500 transition-colors shadow-lg">Submit Vectors</button>
+              </form>
+           </div>
+        </div>
+      </div><!-- End view-survey -->
+
     </div><!-- End flex-1 relative (views container) -->
+
+    <!-- Master Key Initialization Modal -->
+    <div id="master-key-modal" class="fixed inset-0 z-[200] bg-black backdrop-blur-3xl flex items-center justify-center p-4">
+      <div class="bg-gray-900 border border-gray-800 rounded-3xl p-8 w-full max-w-md shadow-2xl relative">
+        <h2 class="text-3xl font-black text-white mb-2">Zero-Trust Nexus</h2>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-8">Establish Master Encryption Key</p>
+        
+        <p class="text-sm text-gray-300 font-medium mb-6 leading-relaxed">
+          Your data is encrypted end-to-end. We cannot access it. 
+          <span class="text-red-400 font-bold block mt-2">If you lose your Master Key, your data is irretrievable.</span>
+        </p>
+
+        <form id="master-key-form" class="space-y-4">
+          <div>
+            <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">Master Key</label>
+            <input type="password" id="master-key-input" required class="w-full px-4 py-3 bg-black border border-gray-700 text-white rounded-xl outline-none focus:border-blue-500 font-medium" placeholder="••••••••••••">
+          </div>
+          <button type="submit" class="w-full py-4 mt-4 bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-blue-500 transition-colors shadow-lg">Initialize Secure Enclave</button>
+        </form>
+      </div>
+    </div>
     
     <!-- Audio/Video Elements for PeerJS -->
     <audio id="remote-audio" autoplay class="hidden"></audio>
@@ -477,13 +571,33 @@
             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Full Name</label>
             <input type="text" id="contact-name" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 font-medium">
           </div>
-          <div>
-            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Mobile Number</label>
-            <input type="tel" id="contact-mobile" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 font-medium">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Mobile Number</label>
+              <input type="tel" id="contact-mobile" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 font-medium">
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Email</label>
+              <input type="email" id="contact-email" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 font-medium">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+               <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Company</label>
+               <input type="text" id="contact-company" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 font-medium">
+            </div>
+            <div>
+               <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Role</label>
+               <input type="text" id="contact-role" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 font-medium">
+            </div>
           </div>
           <div>
             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Synapse ID (Optional for Active Link)</label>
             <input type="text" id="contact-synapse" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 font-medium text-xs">
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Notes</label>
+            <textarea id="contact-notes" rows="2" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 font-medium text-sm"></textarea>
           </div>
           <div class="flex items-center gap-3 pt-2 group cursor-pointer" onclick="document.getElementById('contact-favorite').click()">
              <input type="checkbox" id="contact-favorite" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer pointer-events-auto">
@@ -491,6 +605,39 @@
           </div>
           <button type="submit" class="w-full py-4 mt-6 bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-blue-700 transition-colors shadow-lg">Save Contact</button>
         </form>
+      </div>
+    </div>
+
+    <!-- View Profile Modal -->
+    <div id="view-profile-modal" class="hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl relative animate-in zoom-in-95 duration-200">
+        <button id="close-profile-modal" onclick="document.getElementById('view-profile-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-black">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <div class="flex items-center flex-col text-center">
+            <img id="profile-modal-avatar" src="" class="w-24 h-24 rounded-full border-4 border-gray-100 shadow-xl mb-4 object-cover"/>
+            <h2 id="profile-modal-name" class="text-2xl font-black mb-1 text-gray-900"></h2>
+            <p id="profile-modal-role-company" class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-6"></p>
+        </div>
+        
+        <div class="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+          <div class="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 shadow-sm">
+             <div class="text-[9px] font-black uppercase text-gray-400 mb-1 tracking-widest">Mobile Contact</div>
+             <div id="profile-modal-mobile" class="font-bold text-gray-800"></div>
+          </div>
+          <div class="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 shadow-sm">
+             <div class="text-[9px] font-black uppercase text-gray-400 mb-1 tracking-widest">Email Address</div>
+             <div id="profile-modal-email" class="font-bold text-gray-800"></div>
+          </div>
+          <div class="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 shadow-sm">
+             <div class="text-[9px] font-black uppercase text-gray-400 mb-1 tracking-widest">Synapse ID</div>
+             <div id="profile-modal-synapse" class="font-bold text-green-600 font-mono text-sm py-1"></div>
+          </div>
+          <div class="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 shadow-sm">
+             <div class="text-[9px] font-black uppercase text-gray-400 mb-1 tracking-widest">Agent Notes</div>
+             <div id="profile-modal-notes" class="font-medium text-gray-600 text-sm whitespace-pre-wrap"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

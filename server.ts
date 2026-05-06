@@ -4,7 +4,6 @@ import { GoogleGenAI } from '@google/genai';
 import twilio from 'twilio';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,7 +12,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+let genAI: GoogleGenAI | null = null;
+function getGenAI() {
+  if (!genAI) {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) {
+      throw new Error('GEMINI_API_KEY is not defined');
+    }
+    genAI = new GoogleGenAI({ apiKey: key });
+  }
+  return genAI;
+}
 
 app.post('/api/turn', (req, res) => {
   const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -39,8 +48,9 @@ app.post('/api/turn', (req, res) => {
 
 app.post('/api/analyze', async (req, res) => {
   try {
+    const ai = getGenAI();
     const { message } = req.body;
-    const response = await genAI.models.generateContent({
+    const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Analyze sentiment. Return ONLY one word: AGGRESSIVE, MELANCHOLY, NEUTRAL, VIBRANT, ANALYTIC, CALM.
       Message: "${message}"`,
@@ -53,10 +63,18 @@ app.post('/api/analyze', async (req, res) => {
 
 app.post('/api/coach', async (req, res) => {
   try {
-    const { text, sentiment } = req.body;
-    const response = await genAI.models.generateContent({
+    const ai = getGenAI();
+    const { text, sentiment, surveyData } = req.body;
+    
+    let basePrompt = `The following message has a ${sentiment} tone: "${text}". Suggest a brief (1-2 sentences), constructive alternative way to phrase this to de-escalate and improve communication flow. Act as a relationship/communication coach.`;
+    
+    if (surveyData && surveyData.stressor) {
+       basePrompt += ` The user has reported their current primary stressor is: "${surveyData.stressor}". Keep your tone highly sensitive, supportive, and prioritize their mental well-being over winning the argument.`;
+    }
+
+    const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `The following message has a ${sentiment} tone: "${text}". Suggest a brief (1-2 sentences), constructive alternative way to phrase this to de-escalate and improve communication flow. Act as a relationship/communication coach.`
+      contents: basePrompt
     });
     res.json({ text: response.text });
   } catch (err: any) {
@@ -66,11 +84,18 @@ app.post('/api/coach', async (req, res) => {
 
 app.post('/api/interpret', async (req, res) => {
   try {
-    const { text } = req.body;
-    const response = await genAI.models.generateContent({
+    const ai = getGenAI();
+    const { text, surveyData } = req.body;
+    
+    let basePrompt = `Analyze this message's underlying intent and summarize its logic trail. Use professional, insightful language. Message: "${text}"`;
+
+    if (surveyData && surveyData.stressor) {
+       basePrompt = `Act as a Communication Coach & Healing Advocate. Analyze this sentiment and underlying intent: "${text}". The user's known stressor is "${surveyData.stressor}". Shift to De-escalation Mode if this touches on their stressor.`;
+    }
+
+    const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Analyze this message's underlying intent and summarize its logic trail. Use professional, insightful language.
-      Message: "${text}"`,
+      contents: basePrompt
     });
     res.json({ text: response.text || 'Nexus could not distill intent at this time.' });
   } catch (err: any) {
@@ -92,12 +117,12 @@ async function startServer() {
   } else {
     // Production serving
     app.use(express.static(path.resolve(__dirname, 'dist')));
-    app.get('*', (req, res) => {
+    app.use((req, res) => {
       res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
     });
   }
 
-  const port = process.env.PORT || 3000;
+  const port = 3000;
   app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
   });

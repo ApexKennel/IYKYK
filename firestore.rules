@@ -40,8 +40,8 @@ service cloud.firestore {
     match /messages/{messageId} {
       allow read: if isSignedIn() && resource.data.senderId == request.auth.uid;
       allow create: if isSignedIn() && isValidMessage(incoming());
-      // No updates for now to keep it immutable, or restrict to AI status
-      allow update, delete: if false;
+      allow update: if isSignedIn() && resource.data.senderId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['reactions']);
+      allow delete: if isSignedIn() && resource.data.senderId == request.auth.uid;
     }
 
     match /users/{userId} {
@@ -51,6 +51,14 @@ service cloud.firestore {
       match /contacts/{contactId} {
         allow read, write: if isOwner(userId);
       }
+      
+      match /sentiment_history/{historyId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+    
+    match /nexus_surveys/{userId}/sessions/{sessionId} {
+      allow read, write: if isOwner(userId);
     }
   }
 }

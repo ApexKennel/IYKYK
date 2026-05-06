@@ -5,9 +5,11 @@ import {
   initializeFirestore, 
   persistentLocalCache, 
   persistentMultipleTabManager,
-  collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, limit, doc, setDoc, where
+  collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, limit, doc, setDoc, where, updateDoc, getDocs, getDoc, deleteDoc
 } from 'firebase/firestore';
+import Chart from 'chart.js/auto';
 import Peer, { MediaConnection } from 'peerjs';
+import { NexusVault } from './encryption-wrapper';
 import firebaseConfig from './firebase-applet-config.json';
 
 // --- Firebase Initialization ---
@@ -55,17 +57,45 @@ const views = {
   home: document.getElementById('view-home') as HTMLElement,
   contacts: document.getElementById('view-contacts') as HTMLElement,
   chat: document.getElementById('view-chat') as HTMLElement,
-  advancement: document.getElementById('view-advancement') as HTMLElement
+  advancement: document.getElementById('view-advancement') as HTMLElement,
+  calendar: document.getElementById('view-calendar') as HTMLElement,
+  survey: document.getElementById('view-survey') as HTMLElement
 };
 const navBtns = {
   home: document.getElementById('nav-btn-home') as HTMLButtonElement,
   contacts: document.getElementById('nav-btn-contacts') as HTMLButtonElement,
   chat: document.getElementById('nav-btn-chat') as HTMLButtonElement,
-  advancement: document.getElementById('nav-btn-advancement') as HTMLButtonElement
+  advancement: document.getElementById('nav-btn-advancement') as HTMLButtonElement,
+  calendar: document.getElementById('nav-btn-calendar') as HTMLButtonElement,
+  survey: document.getElementById('nav-btn-survey') as HTMLButtonElement
 };
 
-// --- State Management ---
+// Master Key Modal
+const masterKeyModal = document.getElementById('master-key-modal') as HTMLElement;
+const masterKeyForm = document.getElementById('master-key-form') as HTMLFormElement;
+const masterKeyInput = document.getElementById('master-key-input') as HTMLInputElement;
+
+// --- Crypto Wrapper ---
+let masterKey: CryptoKey | null = null;
+const SALT = new TextEncoder().encode("NEXUS_SALT_1234");
+
+masterKeyForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const pwd = masterKeyInput.value.trim();
+  if (pwd) {
+    masterKey = await NexusVault.deriveKey(pwd, SALT);
+    masterKeyModal.classList.add('hidden');
+    // If auth is already ready, load messages since we now have the key
+    if (currentUser) {
+       chatMessages.innerHTML = '<div class="flex flex-col items-center justify-center py-20 opacity-10"><div class="w-24 h-24 bg-gray-200 rounded-full blur-3xl absolute"></div><p class="text-[10px] font-black tracking-[0.4em] uppercase text-gray-500 mb-8">Nexus Established</p></div>';
+       loadSurveyData();
+       setupMessageListener();
+    }
+  }
+});
+
 let currentUser: User | null = null;
+let currentSurveyData: any = null;
 let isIykykMode = false;
 let isLocked = false;
 let currentFlag: string | null = null;
@@ -97,12 +127,21 @@ function updateWordCounter() {
   }
 }
 
-function createMessageElement(text: string, isAI: boolean, senderName: string = "AI", flag: string | null = null, desc: string = ""): HTMLElement {
+function createMessageElement(
+  text: string, 
+  isAI: boolean, 
+  senderName: string = "AI", 
+  flag: string | null = null, 
+  desc: string = "", 
+  isIykyk: boolean = false,
+  messageId: string | null = null,
+  reactions: Record<string, string[]> | null = null
+): HTMLElement {
   const container = document.createElement('div');
-  container.className = `flex flex-col ${isAI ? 'items-start' : 'items-end'} w-full animate-msg group`;
+  container.className = `flex flex-col ${isAI ? 'items-start' : 'items-end'} w-full animate-msg group relative`;
   
   const meta = document.createElement('div');
-  meta.className = 'text-[9px] font-black uppercase text-gray-400 mb-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity';
+  meta.className = 'text-[9px] font-black uppercase text-gray-400 mb-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity flex justify-between gap-4';
   meta.textContent = senderName;
   container.appendChild(meta);
 
@@ -113,8 +152,11 @@ function createMessageElement(text: string, isAI: boolean, senderName: string = 
     container.appendChild(badge);
   }
 
+  const bubbleWrapper = document.createElement('div');
+  bubbleWrapper.className = `relative flex items-center gap-2 ${isAI ? 'flex-row' : 'flex-row-reverse'}`;
+
   const bubble = document.createElement('div');
-  bubble.className = `message-bubble ${isAI ? 'ai-bubble shadow-sm' : 'user-bubble'} ${flag ? 'flagged-bubble !text-black border-black/10' : ''}`;
+  bubble.className = `message-bubble ${isAI ? 'ai-bubble shadow-sm' : 'user-bubble'} ${flag ? 'flagged-bubble !text-black border-black/10' : ''} ${isIykyk ? 'iykyk-bubble' : ''}`;
   
   if (isAI) {
     bubble.innerHTML = marked.parse(text) as string;
@@ -128,8 +170,94 @@ function createMessageElement(text: string, isAI: boolean, senderName: string = 
     bubble.style.cursor = "pointer";
   }
 
-  container.appendChild(bubble);
+  bubbleWrapper.appendChild(bubble);
+
+  if (messageId) {
+    const actionsMenu = document.createElement('div');
+    actionsMenu.className = `opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white/80 backdrop-blur shadow-sm p-1 rounded-full border border-gray-100 ${isAI ? '' : 'flex-row-reverse'}`;
+    
+    // Emojis
+    const emojis = ['👍', '❤️', '🔥', '😂'];
+    emojis.forEach(emoji => {
+      const btn = document.createElement('button');
+      btn.textContent = emoji;
+      btn.className = 'w-6 h-6 flex items-center justify-center rounded-full hover:bg-black/5 text-xs transition-colors hover:scale-110';
+      btn.onclick = () => (window as any).toggleReaction(messageId, emoji);
+      actionsMenu.appendChild(btn);
+    });
+
+    // Delete
+    const deleteBtn = document.createElement('button');
+    deleteBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-500"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>';
+    deleteBtn.className = 'w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-50 transition-colors ml-1';
+    deleteBtn.onclick = () => {
+      if (confirm('Are you sure you want to delete this message?')) {
+        (window as any).deleteMessage(messageId);
+      }
+    };
+    actionsMenu.appendChild(deleteBtn);
+    bubbleWrapper.appendChild(actionsMenu);
+  }
+
+  container.appendChild(bubbleWrapper);
+
+  const reactionsDiv = document.createElement('div');
+  reactionsDiv.className = `reactions-container flex gap-1 mt-1 ${isAI ? 'justify-start' : 'justify-end'}`;
+  container.appendChild(reactionsDiv);
+
+  if (reactions) {
+    updateReactionsUI(container, reactions);
+  }
+
   return container;
+}
+
+(window as any).toggleReaction = async (messageId: string, emoji: string) => {
+  if (!currentUser) return;
+  const docRef = doc(db, 'messages', messageId);
+  try {
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      const reactions = data.reactions || {};
+      const emojiUsers = reactions[emoji] || [];
+      if (emojiUsers.includes(currentUser.uid)) {
+        reactions[emoji] = emojiUsers.filter((uid: string) => uid !== currentUser.uid);
+        if (reactions[emoji].length === 0) delete reactions[emoji];
+      } else {
+        reactions[emoji] = [...emojiUsers, currentUser.uid];
+      }
+      await updateDoc(docRef, { reactions });
+    }
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+(window as any).deleteMessage = async (messageId: string) => {
+  if (!currentUser) return;
+  try {
+    await deleteDoc(doc(db, 'messages', messageId));
+  } catch (e) {
+    console.error('Failed to delete message', e);
+  }
+};
+
+function updateReactionsUI(msgEl: HTMLElement, reactions: Record<string, string[]> | null) {
+  const container = msgEl.querySelector('.reactions-container');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  if (!reactions) return;
+
+  Object.entries(reactions).forEach(([emoji, users]) => {
+    if (users.length > 0) {
+      const badge = document.createElement('div');
+      badge.className = 'px-1.5 py-0.5 bg-white border border-gray-100 shadow-sm rounded-full text-[10px] flex items-center gap-1';
+      badge.innerHTML = `<span>${emoji}</span><span class="text-gray-500 font-bold">${users.length}</span>`;
+      container.appendChild(badge);
+    }
+  });
 }
 
 function scrollToBottom() {
@@ -152,6 +280,14 @@ async function analyzeSentiment(text: string) {
     const width = weights[sentiment] || 50;
     moodBar.style.width = width + '%';
 
+    if (currentUser) {
+      await addDoc(collection(db, 'users', currentUser.uid, 'sentiment_history'), {
+        sentiment,
+        score: width,
+        timestamp: serverTimestamp()
+      });
+    }
+
     if (sentiment === 'AGGRESSIVE' || sentiment === 'MELANCHOLY') {
       triggerCommunicationCoach(text, sentiment);
     }
@@ -164,7 +300,7 @@ async function triggerCommunicationCoach(text: string, sentiment: string) {
     const res = await fetch('/api/coach', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, sentiment })
+      body: JSON.stringify({ text, sentiment, surveyData: currentSurveyData })
     });
     const data = await res.json();
     
@@ -187,7 +323,7 @@ async function handleInterpretation(text: string) {
     const res = await fetch('/api/interpret', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
+      body: JSON.stringify({ text, surveyData: currentSurveyData })
     });
     const data = await res.json();
     const interpretationText = data.text || "Nexus could not distill intent at this time.";
@@ -216,26 +352,49 @@ function setupMessageListener() {
     snapshot.docChanges().forEach((change) => {
       if (change.type === 'added') {
         const data = change.doc.data();
-        // Avoid duplicates if we have local optimistic updates (though we aren't doing that here for simplicity)
-        const msgEl = createMessageElement(
-          data.text, 
-          data.isAI, 
-          data.senderName, 
-          data.flag, 
-          data.flagDesc
-        );
-        chatMessages.appendChild(msgEl);
-        
-        if (data.flag) {
-          isLocked = true;
-          lockedBadge.classList.remove('hidden');
-          unlockUi.classList.remove('hidden');
-          currentFlagText.textContent = data.flag.toUpperCase();
-          currentFlagDesc.textContent = data.flagDesc ? `[ ${data.flagDesc.toUpperCase()} ]` : "";
-          document.querySelector('.glass-panel')?.classList.add('locked-border');
+        let decPromise = Promise.resolve(data.text);
+        if (data.text && typeof data.text === 'object' && masterKey) {
+           decPromise = NexusVault.decrypt(data.text, masterKey).catch(() => "[Encrypted Data - Master Key Mismatch]");
+        } else if (typeof data.text === 'string' && !data.text.startsWith('{')) {
+           decPromise = Promise.resolve(data.text);
         }
-        
-        scrollToBottom();
+
+        decPromise.then((decryptedText: string) => {
+          const msgEl = createMessageElement(
+            decryptedText, 
+            data.isAI, 
+            data.senderName, 
+            data.flag, 
+            data.flagDesc,
+            data.isIykyk,
+            change.doc.id,
+            data.reactions
+          );
+          msgEl.id = 'msg-' + change.doc.id;
+          chatMessages.appendChild(msgEl);
+          
+          if (data.flag) {
+            isLocked = true;
+            lockedBadge.classList.remove('hidden');
+            unlockUi.classList.remove('hidden');
+            currentFlagText.textContent = data.flag.toUpperCase();
+            currentFlagDesc.textContent = data.flagDesc ? `[ ${data.flagDesc.toUpperCase()} ]` : "";
+            document.querySelector('.glass-panel')?.classList.add('locked-border');
+          }
+          
+          scrollToBottom();
+        });
+      } else if (change.type === 'modified') {
+        const msgEl = document.getElementById('msg-' + change.doc.id);
+        if (msgEl) {
+          const data = change.doc.data();
+          updateReactionsUI(msgEl, data.reactions);
+        }
+      } else if (change.type === 'removed') {
+        const msgEl = document.getElementById('msg-' + change.doc.id);
+        if (msgEl) {
+          msgEl.remove();
+        }
       }
     });
   });
@@ -410,8 +569,11 @@ onAuthStateChanged(auth, async (user) => {
 
     // Clear initial messages and setup real-sync
     chatMessages.innerHTML = '';
-    setupMessageListener();
     setupContactsListener();
+    loadSurveyData();
+    if (masterKey) {
+      setupMessageListener();
+    }
   } else {
     authBtn.textContent = 'Join Nexus';
     authBtn.classList.add('btn-premium');
@@ -442,14 +604,16 @@ chatForm.addEventListener('submit', async (e) => {
   flagPicker.classList.add('hidden');
   
   try {
+    const encryptedMessage = masterKey ? await NexusVault.encrypt(message, masterKey) : message;
     await addDoc(collection(db, 'messages'), {
-      text: message,
+      text: encryptedMessage,
       senderId: currentUser.uid,
       senderName: currentUser.displayName || 'Anon',
       timestamp: serverTimestamp(),
       flag: usedFlag,
       flagDesc: usedDesc,
-      isAI: false
+      isAI: false,
+      isIykyk: isIykykMode
     });
     
     analyzeSentiment(message);
@@ -503,7 +667,93 @@ function switchView(viewName: keyof typeof views) {
 navBtns.home.addEventListener('click', () => switchView('home'));
 navBtns.contacts.addEventListener('click', () => switchView('contacts'));
 navBtns.chat.addEventListener('click', () => switchView('chat'));
-navBtns.advancement.addEventListener('click', () => switchView('advancement'));
+let sentimentChart: Chart | null = null;
+
+async function updateSentimentChart() {
+  if (!currentUser) return;
+  const canvas = document.getElementById('sentiment-chart') as HTMLCanvasElement;
+  if (!canvas) return;
+
+  const q = query(
+    collection(db, 'users', currentUser.uid, 'sentiment_history'),
+    orderBy('timestamp', 'asc'),
+    limit(50)
+  );
+
+  const snapshot = await getDocs(q);
+  const labels: string[] = [];
+  const dataPoints: number[] = [];
+  const pointColors: string[] = [];
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    if (data.timestamp) {
+      const date = data.timestamp.toDate();
+      labels.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    } else {
+      labels.push('');
+    }
+    dataPoints.push(data.score || 50);
+    
+    // Color mapping
+    let color = '#3b82f6'; // NEUTRAL (blue)
+    if (data.sentiment === 'AGGRESSIVE') color = '#ef4444'; // red
+    else if (data.sentiment === 'MELANCHOLY') color = '#f97316'; // orange
+    else if (data.sentiment === 'CALM') color = '#10b981'; // green
+    else if (data.sentiment === 'VIBRANT') color = '#a855f7'; // purple
+    else if (data.sentiment === 'ANALYTIC') color = '#eab308'; // yellow
+    pointColors.push(color);
+  });
+
+  if (sentimentChart) {
+    sentimentChart.destroy();
+  }
+
+  sentimentChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Emotional Score',
+        data: dataPoints,
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+        borderWidth: 2,
+        pointBackgroundColor: pointColors,
+        pointBorderColor: 'transparent',
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        fill: true,
+        backgroundColor: 'rgba(59, 130, 246, 0.05)',
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: { 
+          display: false,
+          min: 0,
+          max: 100
+        },
+        x: {
+          grid: { display: false, color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 } }
+        }
+      }
+    }
+  });
+}
+
+navBtns.advancement.addEventListener('click', () => {
+  switchView('advancement');
+  updateSentimentChart();
+});
+navBtns.calendar.addEventListener('click', () => switchView('calendar'));
+navBtns.survey.addEventListener('click', () => switchView('survey'));
 
 // Make global functions available to inline onclick
 (window as any).switchView = switchView;
@@ -557,6 +807,32 @@ resolveBtn.addEventListener('click', () => {
   document.querySelector('.glass-panel')?.classList.remove('locked-border');
 });
 
+async function loadSurveyData() {
+  if (!currentUser) return;
+  const q = query(
+    collection(db, 'nexus_surveys', currentUser.uid, 'sessions'),
+    orderBy('timestamp', 'desc'),
+    limit(1)
+  );
+  onSnapshot(q, async (snapshot) => {
+    if (!snapshot.empty) {
+      const doc = snapshot.docs[0];
+      const data = doc.data();
+      if (data.survey_data) {
+        let dec = data.survey_data;
+        if (data.survey_data && typeof data.survey_data === 'object' && masterKey) {
+           try { dec = await NexusVault.decrypt(data.survey_data, masterKey); } catch(e){}
+        }
+        if (typeof dec === 'string') {
+           try {
+             currentSurveyData = JSON.parse(dec);
+           } catch(e) {}
+        }
+      }
+    }
+  });
+}
+
 function setupContactsListener() {
   const contactsList = document.getElementById('contacts-list') as HTMLElement;
   const favoritesList = document.getElementById('favorites-list') as HTMLElement;
@@ -594,6 +870,27 @@ function setupContactsListener() {
         <div class="contact-card relative overflow-hidden group/card bg-white rounded-3xl border border-gray-200 hover:border-blue-300 hover:shadow-2xl transition-all duration-300 flex flex-col justify-between">
           <div class="h-20 w-full bg-gradient-to-r from-blue-100 to-purple-100"></div>
           
+          <div class="absolute top-4 left-4 flex gap-2 z-10 opacity-0 group-hover/card:opacity-100 transition-opacity">
+            <button onclick="openChatWith('${contactId}')" class="w-8 h-8 rounded-full bg-white/80 hover:bg-white text-blue-600 flex items-center justify-center shadow-lg backdrop-blur" title="Message">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            </button>
+            <button onclick="viewProfile('${contactId}')" class="w-8 h-8 rounded-full bg-white/80 hover:bg-white text-gray-600 flex items-center justify-center shadow-lg backdrop-blur" title="View Profile">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><circle cx="12" cy="10" r="3"/></svg>
+            </button>
+            ${synapseId ? `
+            <button onclick="startSpecificCall('${synapseId}', false)" class="w-8 h-8 rounded-full bg-white/80 hover:bg-white text-blue-600 flex items-center justify-center shadow-lg backdrop-blur" title="Quick Audio Call">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            </button>
+            <button onclick="startSpecificCall('${synapseId}', true)" class="w-8 h-8 rounded-full bg-white/80 hover:bg-white text-blue-600 flex items-center justify-center shadow-lg backdrop-blur" title="Quick Video Call">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+            </button>
+            ` : `
+            <button onclick="syncContact('${contactId}', '${contact.mobileNumber}')" class="w-8 h-8 rounded-full bg-white/80 hover:bg-white text-purple-600 flex items-center justify-center shadow-lg backdrop-blur" title="Sync Contact">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+            </button>
+            `}
+          </div>
+
           <button onclick="toggleFavorite('${contactId}', ${isFav})" class="absolute top-4 right-4 text-${isFav ? 'yellow-500' : 'white hover:scale-110 drop-shadow-md'} transition-all z-10 p-1">
              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
           </button>
@@ -664,6 +961,31 @@ const addContactBtn = document.getElementById('add-contact-btn') as HTMLButtonEl
 const addContactModal = document.getElementById('add-contact-modal') as HTMLElement;
 const closeContactModal = document.getElementById('close-contact-modal') as HTMLButtonElement;
 const addContactForm = document.getElementById('add-contact-form') as HTMLFormElement;
+const surveyForm = document.getElementById('survey-form') as HTMLFormElement;
+surveyForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!currentUser) return;
+  const goal = (document.getElementById('survey-goal') as HTMLInputElement).value;
+  const stressor = (document.getElementById('survey-stressor') as HTMLTextAreaElement).value;
+
+  currentSurveyData = { goal, stressor };
+
+  // Save encrypted to Firebase
+  const plainData = JSON.stringify(currentSurveyData);
+  const encrypted = masterKey ? await NexusVault.encrypt(plainData, masterKey) : plainData;
+
+  try {
+    await addDoc(collection(db, 'nexus_surveys', currentUser.uid, 'sessions'), {
+      timestamp: serverTimestamp(),
+      survey_data: encrypted
+    });
+    alert('Nexus Personalization Updated.');
+    (window as any).switchView('home');
+  } catch (err) {
+    console.error('Failed to save survey', err);
+    alert('Failed to save survey');
+  }
+});
 
 addContactBtn.addEventListener('click', () => {
   addContactModal.classList.remove('hidden');
@@ -678,6 +1000,10 @@ addContactForm.addEventListener('submit', async (e) => {
   
   const name = (document.getElementById('contact-name') as HTMLInputElement).value;
   const mobileNumber = (document.getElementById('contact-mobile') as HTMLInputElement).value;
+  const email = (document.getElementById('contact-email') as HTMLInputElement).value;
+  const company = (document.getElementById('contact-company') as HTMLInputElement).value;
+  const role = (document.getElementById('contact-role') as HTMLInputElement).value;
+  const notes = (document.getElementById('contact-notes') as HTMLTextAreaElement).value;
   const synapseId = (document.getElementById('contact-synapse') as HTMLInputElement).value;
   const isFavorite = (document.getElementById('contact-favorite') as HTMLInputElement).checked;
   
@@ -686,6 +1012,10 @@ addContactForm.addEventListener('submit', async (e) => {
     await setDoc(contactRef, {
       name,
       mobileNumber,
+      email,
+      company,
+      role,
+      notes,
       synapseId,
       isFavorite,
       createdAt: serverTimestamp()
@@ -718,6 +1048,63 @@ addContactForm.addEventListener('submit', async (e) => {
   } catch (err) {
     alert("Media access denied. Link failed.");
     console.error(err);
+  }
+};
+
+(window as any).openChatWith = (contactId: string) => {
+  (window as any).currentChatId = contactId;
+  (window as any).switchView('chat');
+};
+
+(window as any).viewProfile = async (contactId: string) => {
+  if (!currentUser) return;
+  try {
+    const docRef = doc(db, 'users', currentUser.uid, 'contacts', contactId);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const contact = snap.data();
+      const synapseId = contact.synapseId || '';
+      const avatarUrl = synapseId ? 'https://api.dicebear.com/7.x/identicon/svg?seed=' + synapseId : 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(contact.name);
+      
+      const setEl = (id: string, text: string) => {
+         const el = document.getElementById(id);
+         if (el) el.textContent = text || 'N/A';
+      };
+
+      (document.getElementById('profile-modal-avatar') as HTMLImageElement).src = avatarUrl;
+      setEl('profile-modal-name', contact.name);
+      
+      const roleCompany = [contact.role, contact.company].filter(Boolean).join(' @ ');
+      setEl('profile-modal-role-company', roleCompany || 'No specified role');
+      
+      setEl('profile-modal-mobile', contact.mobileNumber);
+      setEl('profile-modal-email', contact.email);
+      setEl('profile-modal-synapse', contact.synapseId || 'Offline');
+      setEl('profile-modal-notes', contact.notes || 'No agent notes recorded.');
+
+      document.getElementById('view-profile-modal')?.classList.remove('hidden');
+    }
+  } catch (e) {
+    console.error('Failed to load profile', e);
+  }
+};
+
+(window as any).syncContact = async (contactId: string, mobile: string) => {
+  if (!currentUser) return;
+  if (!mobile) {
+    alert('Cannot sync without a verified mobile trace.');
+    return;
+  }
+  
+  try {
+    const fakeSynapseId = Math.random().toString(36).substring(2, 10).toUpperCase() + "-SYNC";
+    await updateDoc(doc(db, 'users', currentUser.uid, 'contacts', contactId), {
+      synapseId: fakeSynapseId
+    });
+    alert('Synapse Successfully Bound: ' + fakeSynapseId + '\\nContact is now actively linked.');
+  } catch (err) {
+    console.error(err);
+    alert('Failed to execute sync operation on Neural Hub.');
   }
 };
 

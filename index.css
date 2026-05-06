@@ -160,11 +160,11 @@ body {
   margin-top: 8px;
 }
 
-/* IYKYK Mode active state */
-.mode-iykyk-active .message-bubble {
-  border-radius: 8px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 12.5px;
+/* IYKYK Mode message state */
+.iykyk-bubble {
+  border-radius: 8px !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  font-size: 12.5px !important;
 }
 
 .message-meta {
