@@ -781,10 +781,96 @@ modeIykyk.addEventListener('click', () => {
   updateWordCounter();
 });
 
-chatInput.addEventListener('input', () => {
+const mentionDropdown = document.getElementById('mention-dropdown') as HTMLElement;
+let currentMentionIdx = -1;
+let filteredContacts: {id: string, name: string}[] = [];
+
+chatInput.addEventListener('input', (e) => {
   chatInput.style.height = 'auto';
   chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px';
   updateWordCounter();
+
+  const val = chatInput.value;
+  const cursor = chatInput.selectionStart;
+  const textBeforeCursor = val.slice(0, cursor);
+  const match = textBeforeCursor.match(/@(\w*)$/);
+  
+  if (match) {
+    const query = match[1].toLowerCase();
+    filteredContacts = localContacts.filter(c => c.name.toLowerCase().includes(query));
+    
+    if (filteredContacts.length > 0) {
+      mentionDropdown.classList.remove('hidden');
+      renderMentions();
+    } else {
+      mentionDropdown.classList.add('hidden');
+    }
+  } else {
+    mentionDropdown.classList.add('hidden');
+  }
+});
+
+function renderMentions() {
+  mentionDropdown.innerHTML = '';
+  filteredContacts.forEach((contact, idx) => {
+    const div = document.createElement('div');
+    div.className = `p-3 cursor-pointer text-sm font-bold border-b border-gray-50 last:border-0 hover:bg-gray-50 flex items-center gap-3 ${idx === currentMentionIdx ? 'bg-gray-100' : ''}`;
+    
+    const avatarUrl = 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(contact.name);
+    div.innerHTML = `<img src="${avatarUrl}" class="w-6 h-6 rounded-full border border-gray-100 object-cover" /><span>${contact.name}</span>`;
+    
+    div.addEventListener('click', () => {
+       insertMention(contact);
+    });
+    mentionDropdown.appendChild(div);
+  });
+}
+
+function insertMention(contact: {id: string, name: string}) {
+  const val = chatInput.value;
+  const cursor = chatInput.selectionStart;
+  const textBeforeCursor = val.slice(0, cursor);
+  const match = textBeforeCursor.match(/@(\w*)$/);
+  
+  if (match) {
+    const prefix = val.slice(0, cursor - match[0].length);
+    const suffix = val.slice(cursor);
+    chatInput.value = prefix + '@' + contact.name + ' ' + suffix;
+    chatInput.focus();
+    // Update heights & word counts
+    chatInput.dispatchEvent(new Event('input'));
+  }
+  mentionDropdown.classList.add('hidden');
+}
+
+chatInput.addEventListener('keydown', (e) => {
+  if (!mentionDropdown.classList.contains('hidden')) {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      currentMentionIdx = (currentMentionIdx + 1) % filteredContacts.length;
+      renderMentions();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      currentMentionIdx = (currentMentionIdx - 1 + filteredContacts.length) % filteredContacts.length;
+      renderMentions();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (currentMentionIdx >= 0 && currentMentionIdx < filteredContacts.length) {
+        insertMention(filteredContacts[currentMentionIdx]);
+      } else if (filteredContacts.length > 0) {
+        insertMention(filteredContacts[0]);
+      }
+    } else if (e.key === 'Escape') {
+      mentionDropdown.classList.add('hidden');
+    }
+  } else {
+    currentMentionIdx = -1;
+    // Standard chat enter to submit (unless shift+enter)
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      chatForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    }
+  }
 });
 
 toggleFlagBtn.addEventListener('click', () => {
@@ -833,6 +919,8 @@ async function loadSurveyData() {
   });
 }
 
+let localContacts: {id: string, name: string}[] = [];
+
 function setupContactsListener() {
   const contactsList = document.getElementById('contacts-list') as HTMLElement;
   const favoritesList = document.getElementById('favorites-list') as HTMLElement;
@@ -842,6 +930,7 @@ function setupContactsListener() {
 
   const q = query(collection(db, 'users', currentUser.uid, 'contacts'), orderBy('name', 'asc'));
   onSnapshot(q, (snapshot) => {
+    localContacts = [];
     // Keep headers
     contactsList.innerHTML = `<h2 class="col-span-full text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 border-b border-gray-100 pb-2">All Links</h2>`;
     favoritesList.innerHTML = `<h2 class="col-span-full text-[10px] font-black uppercase tracking-widest text-blue-500 mb-2 border-b border-blue-100 pb-2">Favorite Links</h2>`;
@@ -861,6 +950,7 @@ function setupContactsListener() {
       hasContacts = true;
       const contact = docSnap.data();
       const contactId = docSnap.id;
+      localContacts.push({id: contactId, name: contact.name});
       
       const isFav = contact.isFavorite || false;
       const synapseId = contact.synapseId || '';
@@ -1091,20 +1181,15 @@ addContactForm.addEventListener('submit', async (e) => {
 
 (window as any).syncContact = async (contactId: string, mobile: string) => {
   if (!currentUser) return;
-  if (!mobile) {
-    alert('Cannot sync without a verified mobile trace.');
-    return;
-  }
+  if (!mobile) return;
   
   try {
     const fakeSynapseId = Math.random().toString(36).substring(2, 10).toUpperCase() + "-SYNC";
     await updateDoc(doc(db, 'users', currentUser.uid, 'contacts', contactId), {
       synapseId: fakeSynapseId
     });
-    alert('Synapse Successfully Bound: ' + fakeSynapseId + '\\nContact is now actively linked.');
   } catch (err) {
     console.error(err);
-    alert('Failed to execute sync operation on Neural Hub.');
   }
 };
 
